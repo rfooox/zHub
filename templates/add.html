@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>添加资源 - zHub</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <i data-lucide="layers"></i>
+                <h1>zHub</h1>
+            </div>
+            <a href="/" class="btn btn-secondary">
+                <i data-lucide="arrow-left"></i>
+                返回
+            </a>
+        </div>
+    </header>
+    <main class="container">
+        <div class="form-container">
+            <h2>添加资源</h2>
+            <form id="resourceForm">
+                <div class="form-group">
+                    <label for="name">名称 *</label>
+                    <input type="text" id="name" name="name" required placeholder="例如：GitLab">
+                </div>
+                <div class="form-group">
+                    <label for="url">地址 *</label>
+                    <input type="url" id="url" name="url" required placeholder="例如：https://gitlab.example.com">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="category">分类</label>
+                        <select id="category" name="category">
+                            <option value="internal">内部服务</option>
+                            <option value="external">外部服务</option>
+                            <option value="database">数据库</option>
+                            <option value="middleware">中间件</option>
+                            <option value="monitoring">监控服务</option>
+                            <option value="consul">Consul服务</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="group_name">分组</label>
+                        <input type="text" id="group_name" name="group_name" placeholder="例如：开发环境">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="tags">标签</label>
+                    <input type="text" id="tags" name="tags" placeholder="用逗号分隔，例如：git,代码仓库">
+                </div>
+                <div class="form-group">
+                    <label for="description">描述</label>
+                    <textarea id="description" name="description" rows="3" placeholder="资源的简要描述..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="consul_enabled" name="consul_enabled">
+                        同步到 Consul
+                    </label>
+                </div>
+                <div id="consulConfig" class="consul-config" style="display:none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="consul_check_type">健康检查类型</label>
+                            <select id="consul_check_type" name="consul_check_type">
+                                <option value="http">HTTP</option>
+                                <option value="tcp">TCP</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="consul_check_interval">检查间隔</label>
+                            <select id="consul_check_interval" name="consul_check_interval">
+                                <option value="10s">10秒</option>
+                                <option value="30s" selected>30秒</option>
+                                <option value="60s">1分钟</option>
+                                <option value="120s">2分钟</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="consul_tags">Consul 标签</label>
+                        <input type="text" id="consul_tags" name="consul_tags" placeholder="额外的标签，用逗号分隔">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i data-lucide="check"></i>
+                        保存
+                    </button>
+                    <a href="/" class="btn btn-secondary">取消</a>
+                </div>
+            </form>
+        </div>
+    </main>
+    <script src="/static/js/app.js"></script>
+    <script>
+        lucide.createIcons();
+        document.getElementById('consul_enabled').addEventListener('change', function() {
+            document.getElementById('consulConfig').style.display = this.checked ? 'block' : 'none';
+        });
+        document.getElementById('resourceForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            data.consul_enabled = document.getElementById('consul_enabled').checked;
+            try {
+                const response = await fetch('/api/resources', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = '/';
+                } else {
+                    alert('添加失败: ' + result.error);
+                }
+            } catch (error) {
+                alert('添加失败: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>zHub - 资源导航与监控平台</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <i data-lucide="layers"></i>
+                <h1>zHub</h1>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" id="syncFromConsulBtn" style="display:none;">
+                    <i data-lucide="download"></i>
+                    导入Consul
+                </button>
+                <button class="btn btn-secondary" id="syncToConsulBtn" style="display:none;">
+                    <i data-lucide="upload"></i>
+                    同步到Consul
+                </button>
+                <button class="btn btn-primary" id="addBtn">
+                    <i data-lucide="plus"></i>
+                    添加资源
+                </button>
+            </div>
+        </div>
+    </header>
+    <main class="container">
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-item">
+                <span class="stat-label">总计</span>
+                <span class="stat-value" id="statTotal">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">在线</span>
+                <span class="stat-value stat-online" id="statOnline">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">离线</span>
+                <span class="stat-value stat-offline" id="statOffline">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">平均响应</span>
+                <span class="stat-value" id="statAvgTime">-</span>
+            </div>
+        </div>
+        <div class="filters">
+            <div class="search-box">
+                <i data-lucide="search"></i>
+                <input type="text" id="searchInput" placeholder="搜索资源...">
+            </div>
+            <div class="filter-group">
+                <select id="categoryFilter">
+                    <option value="">全部分类</option>
+                </select>
+                <select id="groupFilter">
+                    <option value="">全部分组</option>
+                </select>
+            </div>
+        </div>
+        <div class="resources-grid" id="resourcesGrid">
+            <div class="loading">加载中...</div>
+        </div>
+    </main>
+    <script src="/static/js/app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

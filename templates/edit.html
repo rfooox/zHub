@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑资源 - zHub</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <i data-lucide="layers"></i>
+                <h1>zHub</h1>
+            </div>
+            <a href="/" class="btn btn-secondary">
+                <i data-lucide="arrow-left"></i>
+                返回
+            </a>
+        </div>
+    </header>
+    <main class="container">
+        <div class="form-container">
+            <h2>编辑资源</h2>
+            <form id="resourceForm">
+                <div class="form-group">
+                    <label for="name">名称 *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="url">地址 *</label>
+                    <input type="url" id="url" name="url" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="category">分类</label>
+                        <select id="category" name="category">
+                            <option value="internal">内部服务</option>
+                            <option value="external">外部服务</option>
+                            <option value="database">数据库</option>
+                            <option value="middleware">中间件</option>
+                            <option value="monitoring">监控服务</option>
+                            <option value="consul">Consul服务</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="group_name">分组</label>
+                        <input type="text" id="group_name" name="group_name">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="tags">标签</label>
+                    <input type="text" id="tags" name="tags">
+                </div>
+                <div class="form-group">
+                    <label for="description">描述</label>
+                    <textarea id="description" name="description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="is_enabled" name="is_enabled" checked>
+                        启用此资源
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="consul_enabled" name="consul_enabled">
+                        同步到 Consul
+                    </label>
+                </div>
+                <div id="consulConfig" class="consul-config" style="display:none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="consul_check_type">健康检查类型</label>
+                            <select id="consul_check_type" name="consul_check_type">
+                                <option value="http">HTTP</option>
+                                <option value="tcp">TCP</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="consul_check_interval">检查间隔</label>
+                            <select id="consul_check_interval" name="consul_check_interval">
+                                <option value="10s">10秒</option>
+                                <option value="30s">30秒</option>
+                                <option value="60s">1分钟</option>
+                                <option value="120s">2分钟</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="consul_tags">Consul 标签</label>
+                        <input type="text" id="consul_tags" name="consul_tags" placeholder="额外的标签，用逗号分隔">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i data-lucide="check"></i>
+                        保存
+                    </button>
+                    <a href="/" class="btn btn-secondary">取消</a>
+                </div>
+                <div class="form-actions form-actions-danger">
+                    <button type="button" class="btn btn-danger" id="deleteBtn">
+                        <i data-lucide="trash-2"></i>
+                        删除此资源
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+    <script src="/static/js/app.js"></script>
+    <script>
+        const resourceId = {{ resource_id }};
+        lucide.createIcons();
+        async function loadResource() {
+            try {
+                const response = await fetch(`/api/resources/${resourceId}`);
+                const result = await response.json();
+                if (result.success) {
+                    const data = result.data;
+                    document.getElementById('name').value = data.name;
+                    document.getElementById('url').value = data.url;
+                    document.getElementById('category').value = data.category;
+                    document.getElementById('group_name').value = data.group_name || '';
+                    document.getElementById('tags').value = data.tags || '';
+                    document.getElementById('description').value = data.description || '';
+                    document.getElementById('is_enabled').checked = data.is_enabled;
+                    document.getElementById('consul_enabled').checked = data.consul_enabled || false;
+                    document.getElementById('consul_check_type').value = data.consul_check_type || 'http';
+                    document.getElementById('consul_check_interval').value = data.consul_check_interval || '30s';
+                    document.getElementById('consul_tags').value = data.consul_tags || '';
+                    if (data.consul_enabled) {
+                        document.getElementById('consulConfig').style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                alert('加载失败: ' + error.message);
+            }
+        }
+        document.getElementById('resourceForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            data.is_enabled = document.getElementById('is_enabled').checked;
+            data.consul_enabled = document.getElementById('consul_enabled').checked;
+            data.consul_check_type = document.getElementById('consul_check_type').value;
+            data.consul_check_interval = document.getElementById('consul_check_interval').value;
+            data.consul_tags = document.getElementById('consul_tags').value;
+            try {
+                const response = await fetch(`/api/resources/${resourceId}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = '/';
+                } else {
+                    alert('保存失败: ' + result.error);
+                }
+            } catch (error) {
+                alert('保存失败: ' + error.message);
+            }
+        });
+        document.getElementById('deleteBtn').addEventListener('click', async () => {
+            if (!confirm('确定要删除这个资源吗？')) return;
+            try {
+                const response = await fetch(`/api/resources/${resourceId}`, {method: 'DELETE'});
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = '/';
+                } else {
+                    alert('删除失败: ' + result.error);
+                }
+            } catch (error) {
+                alert('删除失败: ' + error.message);
+            }
+        });
+        document.getElementById('consul_enabled').addEventListener('change', function() {
+            document.getElementById('consulConfig').style.display = this.checked ? 'block' : 'none';
+        });
+        loadResource();
+    </script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+app:
+  host: 0.0.0.0
+  port: 5000
+  debug: true
+
+consul:
+  enabled: false
+  host: 127.0.0.1
+  port: 8500
+  datacenter: dc1
+  scheme: http
+  sync:
+    default_ttl: 30s
+    tags: []
+
+health_check:
+  enabled: true
+  interval: 60
+  timeout: 5
