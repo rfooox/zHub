@@ -7,7 +7,7 @@ RUN curl -sL "https://releases.hashicorp.com/consul/1.17.0/consul_1.17.0_linux_a
     chmod +x /usr/local/bin/consul && \
     rm /tmp/consul.zip
 
-COPY go/zhub /app/zhub
+COPY zhub /app/zhub
 COPY go/templates /app/templates
 COPY go/static /app/static
 
