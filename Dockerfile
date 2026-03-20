@@ -4,7 +4,7 @@ ENV APP_HOME=/app
 WORKDIR $APP_HOME
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl && \
+    apt-get install -y --no-install-recommends curl unzip && \
     rm -rf /var/lib/apt/lists/*
 
 RUN curl -sL "https://releases.hashicorp.com/consul/1.17.0/consul_1.17.0_linux_amd64.zip" -o /tmp/consul.zip && \
