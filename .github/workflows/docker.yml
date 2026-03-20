@@ -21,6 +21,7 @@ jobs:
       - name: Build binary
         run: |
           cd go
+          go mod download
           CGO_ENABLED=0 GOOS=linux go build -o ../zhub ./cmd
 
       - name: Set up Docker Buildx
@@ -46,6 +47,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          dockerfile: Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
