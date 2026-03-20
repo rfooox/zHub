@@ -1,30 +1,18 @@
-FROM golang:1.21-alpine AS builder
-
-WORKDIR /app
-
-RUN apk add --no-cache curl git
-
-COPY go.mod go.sum* ./
-RUN go mod download
-
-COPY . .
-
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/zhub ./cmd
-
 FROM alpine:3.19
 
-RUN apk add --no-cache curl ca-certificates
+RUN apk add --no-cache curl ca-certificates tzdata
 
 RUN curl -sL "https://releases.hashicorp.com/consul/1.17.0/consul_1.17.0_linux_amd64.zip" -o /tmp/consul.zip && \
     unzip -o -q /tmp/consul.zip -d /usr/local/bin/ && \
     chmod +x /usr/local/bin/consul && \
     rm /tmp/consul.zip
 
-COPY --from=builder /app/zhub /app/zhub
-COPY --from=builder /app/templates /app/templates
-COPY --from=builder /app/static /app/static
+COPY zhub /app/zhub
+COPY templates /app/templates
+COPY static /app/static
 
-RUN mkdir -p /app/data && adduser -D -u 1000 -s /bin/sh appuser && \
+RUN mkdir -p /app/data && \
+    adduser -D -u 1000 -s /bin/sh appuser && \
     chown -R appuser:appuser /app
 
 USER appuser
