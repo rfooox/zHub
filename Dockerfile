@@ -1,32 +1,25 @@
-FROM python:3.11-alpine AS builder
+FROM python:3.11-slim
 
-WORKDIR /app
+ENV APP_HOME=/app
+WORKDIR $APP_HOME
 
-RUN apk add --no-cache gcc musl-dev
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
-
-FROM alpine:3.19
-
-RUN apk add --no-cache curl
-
-COPY --from=builder /root/.local /root/.local
-COPY --from=builder /app /app
-
-RUN adduser -D -u 1000 appuser && \
-    mkdir -p /app/data && \
-    chown -R appuser:appuser /app
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN curl -sL "https://releases.hashicorp.com/consul/1.17.0/consul_1.17.0_linux_amd64.zip" -o /tmp/consul.zip && \
     unzip -o -q /tmp/consul.zip -d /usr/local/bin/ && \
     chmod +x /usr/local/bin/consul && \
-    rm /tmp/consul.zip && \
-    adduser -D -u 1000 -s /bin/sh appuser
+    rm /tmp/consul.zip
 
-USER appuser
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-WORKDIR /app
+COPY . .
+
+RUN mkdir -p data && chown -R 1000:1000 data
+
+USER 1000
 
 EXPOSE 5000 8500
 
